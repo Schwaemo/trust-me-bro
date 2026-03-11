@@ -1,0 +1,217 @@
+TODO: Build "Standalone Search Website with In-Browser Gemma Overview" (Option A)
+
+Source PRD:
+- PRD_Gemma_Overview_Search_OptionA.txt
+
+Goal:
+- Ship an MVP static web app where a user submits a query and sees:
+  1) "Gemma Overview" generated locally in-browser (query-only input),
+  2) Google Programmable Search Engine (PSE) results underneath.
+- No accounts, no persistence, no server-side query/output storage.
+
+--------------------------------------------------
+PHASE 0 - Project Scaffolding and Decisions
+--------------------------------------------------
+[ ] Initialize project (React + TypeScript + Vite preferred for static deployment simplicity).
+[ ] Add lint/format/test tooling (ESLint, Prettier, Vitest, Playwright).
+[ ] Create a clean folder structure:
+    - src/app
+    - src/components
+    - src/features/model
+    - src/features/search
+    - src/features/overview
+    - src/state
+    - src/lib
+[ ] Define environment variables in `.env.example`:
+    - `VITE_GOOGLE_CSE_ID=`
+[ ] Add `README.md` setup instructions for local dev and deployment.
+[ ] Decide and pin exact in-browser runtime + model artifact for Gemma 3 270M.
+    - Record exact package versions and model identifier in README.
+    - If Gemma 3 270M is not practically supported in selected runtime, document fallback choice and rationale in README before implementing fallback.
+
+Acceptance gate:
+[ ] `npm install` and `npm run dev` work on a clean machine.
+[ ] Project has a documented, reproducible stack decision.
+
+--------------------------------------------------
+PHASE 1 - UI Shell + State Machine
+--------------------------------------------------
+[ ] Build page layout:
+    - Header/title
+    - Search input + submit button
+    - Model status bar/banner
+    - Gemma Overview card (top result section)
+    - PSE results container below
+[ ] Add explicit UI states:
+    - model: `loading | ready | error`
+    - generation: `idle | generating | success | error`
+[ ] Disable submit until model is ready (MVP behavior).
+[ ] Add loading messages:
+    - "Loading model..."
+    - staged progress text if available.
+[ ] Add required disclaimer near overview:
+    - "Generated locally by Gemma from the query only; may be incorrect."
+
+Acceptance gate:
+[ ] On first load, user sees search UI + model loading state.
+[ ] Before model ready, submit action is unavailable.
+[ ] Overview section is visually distinct and present even before first query.
+
+--------------------------------------------------
+PHASE 2 - In-Browser Gemma Loading + Inference
+--------------------------------------------------
+[ ] Implement model loader module:
+    - Initialize WebGPU runtime on page load.
+    - Download/load model client-side.
+    - Warm up model after load.
+[ ] Implement runtime capability checks:
+    - If WebGPU unavailable, show clear unsupported message and stop generation path.
+[ ] Implement generation function:
+    - Input: raw query string only.
+    - Prompt template: "Answer the user's query briefly in 1-3 sentences. Use a matter-of-fact tone."
+    - Output constraints:
+      - target 1-3 sentences
+      - max length target ~60-80 words
+      - plain text
+[ ] Enforce predictable latency settings:
+    - max new tokens
+    - temperature/top_p tuned for concise factual style
+[ ] Add cancellation/debounce:
+    - prevent overlapping generations
+    - cancel previous generation if user submits a new query quickly.
+[ ] Add generation UI behavior:
+    - show "Generating..." while running
+    - replace with final output on completion
+    - on failure show: "Could not generate overview" + "Try again".
+
+Acceptance gate:
+[ ] Query submission triggers local generation and returns text in overview card.
+[ ] Generation uses query-only input (no retrieval/context augmentation).
+[ ] Failure states are user-visible and recoverable.
+
+--------------------------------------------------
+PHASE 3 - Google PSE Integration
+--------------------------------------------------
+[ ] Embed Google PSE script using configured CSE ID.
+[ ] Render results list under overview card.
+[ ] Wire submit handler to trigger PSE query execution on each submit.
+[ ] Ensure results are clickable with visible URLs (as rendered by PSE).
+[ ] Ensure layout remains stable while results load.
+
+Acceptance gate:
+[ ] Every submit updates the PSE results section with matching query.
+[ ] Results are displayed below the Gemma overview section.
+
+--------------------------------------------------
+PHASE 4 - Error Handling + Retry Paths
+--------------------------------------------------
+[ ] Model load error state:
+    - prominent error banner
+    - "Retry loading model" button re-initializes runtime/model load.
+[ ] Generation error state:
+    - show failure message
+    - "Try again" action reruns generation for current query.
+[ ] PSE load/execution failure fallback:
+    - show user message that search results failed to load (without crashing page).
+
+Acceptance gate:
+[ ] All three major failures (model load, generation, results load) produce clear UI feedback.
+[ ] Retry actions work without full page refresh.
+
+--------------------------------------------------
+PHASE 5 - Stateless + Privacy Compliance
+--------------------------------------------------
+[ ] Confirm no backend service is required for generation.
+[ ] Confirm app does NOT persist query/output in:
+    - database
+    - server logs
+    - localStorage/sessionStorage/indexedDB (except unavoidable model/cache internals of runtime/browser).
+[ ] Do not add analytics by default.
+[ ] Add privacy note in README and/or UI tooltip:
+    - generation is local in browser
+    - search results are provided through Google PSE behavior.
+
+Acceptance gate:
+[ ] Codebase contains no custom persistence paths for query/output.
+[ ] Privacy behavior is documented.
+
+--------------------------------------------------
+PHASE 6 - Optional MVP+ Enhancements (v1.1 backlog)
+--------------------------------------------------
+[ ] Regenerate button (same query, rerun generation).
+[ ] Copy overview button.
+[ ] Better loading progress display (download vs warm-up stages).
+[ ] Optional Clear button to reset UI.
+[ ] Optional short cooldown between generations.
+
+--------------------------------------------------
+PHASE 7 - Testing and Verification
+--------------------------------------------------
+[ ] Unit tests:
+    - prompt builder constraints
+    - state machine transitions
+    - generation output post-processing (length/sentence guardrails)
+[ ] Integration tests:
+    - submit triggers both local generation and PSE execute call
+    - loading/ready/generating/error states render correctly
+[ ] Playwright e2e:
+    - initial loading state visible
+    - submit disabled until ready
+    - successful query shows overview + results container updates
+    - forced failures show retry controls
+[ ] Manual QA checklist:
+    - Chrome on WebGPU-capable machine
+    - one non-WebGPU browser path for unsupported message
+    - mobile responsive sanity check.
+
+Acceptance gate:
+[ ] Tests pass in CI/local.
+[ ] Manual QA checklist completed and documented.
+
+--------------------------------------------------
+PHASE 8 - Performance and Demo Readiness
+--------------------------------------------------
+[ ] Add lightweight timing instrumentation in dev mode:
+    - time-to-model-ready
+    - time-to-overview-after-submit
+[ ] Tune generation settings to meet target:
+    - p50 < 2-3s
+    - p95 < 6-8s on demo hardware (best effort, document measured device/browser).
+[ ] Validate first-run vs repeat-run behavior (cache impact).
+[ ] Polish UI for demo:
+    - clear typography hierarchy
+    - obvious ready/loading/generating/error signals
+    - no layout jank between sections.
+
+Acceptance gate:
+[ ] Performance metrics captured and included in README.
+[ ] Demo flow is smooth from first page load through repeated searches.
+
+--------------------------------------------------
+PHASE 9 - Deployment
+--------------------------------------------------
+[ ] Deploy as static site (Netlify/Vercel/GitHub Pages).
+[ ] Ensure environment variable for PSE ID is configured in hosting platform.
+[ ] Verify production build:
+    - model load works over HTTPS
+    - PSE script loads and executes
+    - no console errors impacting core flow.
+[ ] Add final runbook in README:
+    - local run
+    - build
+    - deploy
+    - known limitations.
+
+Acceptance gate:
+[ ] Public URL works end-to-end for the MVP flow.
+
+--------------------------------------------------
+Definition of Done (MVP)
+--------------------------------------------------
+[ ] User can enter a query and submit.
+[ ] App generates a short Gemma overview locally in browser from query only.
+[ ] App shows Google PSE results below overview for the same query.
+[ ] App clearly communicates loading, ready, generating, and error states.
+[ ] Required disclaimer is visible near overview.
+[ ] No user data persistence or server-side storage of query/output.
+[ ] README documents setup, model/runtime choice, privacy behavior, limitations, and deployment.

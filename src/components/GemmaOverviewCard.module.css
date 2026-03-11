@@ -1,0 +1,141 @@
+.card {
+  background: linear-gradient(180deg, #f7fafe 0%, #ffffff 38%);
+  border: 1px solid #d2e3fc;
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.header {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.headingRow {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.headingRow h2 {
+  font-size: 1.28rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.experimentPill {
+  background: #e8f0fe;
+  border: 1px solid #d2e3fc;
+  border-radius: var(--radius-pill);
+  color: #174ea6;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1;
+  padding: 7px 10px;
+}
+
+.disclaimer {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.modeHint {
+  color: #174ea6;
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.body {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 96px;
+}
+
+.placeholder,
+.loading {
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.loading {
+  color: #174ea6;
+  font-weight: 500;
+}
+
+.output {
+  font-size: 1rem;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.outputClamped {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  display: -webkit-box;
+  overflow: hidden;
+}
+
+.expandButton {
+  background: transparent;
+  border: 0;
+  color: #174ea6;
+  cursor: pointer;
+  justify-self: start;
+  padding: 0;
+}
+
+.expandButton:hover {
+  text-decoration: underline;
+}
+
+.expandButton:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.errorBlock {
+  color: var(--error);
+}
+
+.errorBlock p {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.regenerateButton {
+  align-items: center;
+  background: #1a73e8;
+  border: 1px solid #1a73e8;
+  border-radius: var(--radius-pill);
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  min-height: 36px;
+  padding: 0 var(--space-4);
+}
+
+.regenerateButton:hover {
+  background: #1558b0;
+  border-color: #1558b0;
+}
+
+.regenerateButton:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.regenerateButton:disabled {
+  background: #e0e0e0;
+  border-color: #e0e0e0;
+  color: #777;
+  cursor: not-allowed;
+}

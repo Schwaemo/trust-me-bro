@@ -1,0 +1,166 @@
+.form {
+  display: grid;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.homeForm {
+  justify-items: center;
+}
+
+.resultsForm {
+  gap: 0;
+}
+
+.visuallyHidden {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.searchShell {
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  display: flex;
+  gap: var(--space-2);
+  min-height: 56px;
+  padding: 0 var(--space-3);
+  transition:
+    box-shadow var(--motion-fast) ease,
+    border-color var(--motion-fast) ease;
+  width: 100%;
+}
+
+.homeForm .searchShell:hover,
+.resultsForm .searchShell:hover {
+  box-shadow: var(--shadow-search);
+}
+
+.searchShell:focus-within {
+  border-color: transparent;
+  box-shadow:
+    var(--shadow-search),
+    0 0 0 2px var(--focus-ring);
+}
+
+.leadingIcon,
+.decorIcon {
+  align-items: center;
+  color: var(--text-muted);
+  display: inline-flex;
+  justify-content: center;
+}
+
+.leadingIcon svg,
+.decorIcon svg,
+.iconSubmit svg {
+  display: block;
+  height: 20px;
+  width: 20px;
+}
+
+.input {
+  background: transparent;
+  border: 0;
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+  outline: 0;
+  padding: 0;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.trailingDecor,
+.resultsActions {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.iconSubmit {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: var(--google-blue);
+  cursor: pointer;
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.iconSubmit:hover {
+  background: var(--bg-hover);
+}
+
+.iconSubmit:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.iconSubmit:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.homeSubmit {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--bg-surface-subtle);
+  border-radius: 4px;
+  color: var(--text-primary);
+  cursor: pointer;
+  min-height: 38px;
+  padding: 0 var(--space-4);
+}
+
+.homeSubmit:hover {
+  border-color: var(--border-default);
+}
+
+.homeSubmit:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.homeSubmit:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.resultsForm .searchShell {
+  min-height: 46px;
+}
+
+@media (max-width: 640px) {
+  .searchShell {
+    min-height: 50px;
+  }
+
+  .resultsForm .searchShell {
+    min-height: 46px;
+  }
+
+  .trailingDecor {
+    display: none;
+  }
+}

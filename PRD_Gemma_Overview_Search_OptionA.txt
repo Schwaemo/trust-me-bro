@@ -1,0 +1,173 @@
+PRD: Standalone Search Website with In-Browser Gemma Overview (Gemma 3 270M)
+
+1) Summary
+- A standalone website that:
+  - lets a user enter a query,
+  - shows a top “Gemma Overview” card generated locally in the browser (Gemma 3 270M),
+  - shows Google-powered search results links underneath (via Programmable Search Engine embed).
+- The Gemma overview uses only the user’s query as input (no retrieval augmentation in v1).
+- The site is stateless: no accounts, no persistence of queries/outputs.
+
+2) Problem Statement
+Create a lightweight, impressive demo that combines:
+- a familiar search UX (overview card + results list), and
+- true local inference (in-browser LLM) with minimal operational overhead.
+
+3) Goals
+Product goals
+- Provide a polished search page with a local-model overview at the top.
+- Auto-load the model on page load so users can search once ready.
+- Keep the system stateless (no DB, no server logs of query/output).
+
+User goals
+- Enter a query and get a short, matter-of-fact response from Gemma.
+- Click through to real search results listed below.
+
+4) Non-goals
+- Modifying or rewriting content on Google.com.
+- Guaranteeing factual correctness.
+- Accounts, payments, analytics pipelines, long-term retention features.
+- Fetching and summarizing full webpages (v1 uses query-only for Gemma).
+
+5) Target Users / Personas
+- Demo audience (peers/interviewers): wants a fast “wow” experience.
+- Builder (you): wants minimal ops and quick iteration.
+
+6) Success Criteria
+Qualitative
+- Clear model readiness state and smooth transition from loading to usable.
+- Overview renders consistently and quickly after submit.
+- Users understand the overview is model-generated and may be incorrect.
+
+Quantitative (suggested)
+- Time-to-model-ready (depends on device): visible progress and readiness within a reasonable bound.
+- Time-to-overview after submit: p50 < 2–3s, p95 < 6–8s on typical demo hardware.
+- No persistence: no DB writes; no query/output storage.
+
+7) User Experience Requirements
+7.1 Landing / Loading State
+- Show search bar immediately.
+- Begin model loading automatically on page load.
+- Display status:
+  - “Loading model…” with progress indicator or staged messages.
+  - Search disabled until model ready (or allow submit but queue).
+
+7.2 Results State
+- Layout:
+  - Top: “Gemma Overview” card (distinct branding; avoid “Google AI Overview” naming).
+  - Bottom: Google search results list (clickable titles and visible URLs).
+- Overview format:
+  - 1–3 sentences
+  - short, matter-of-fact tone
+  - plain text (no markdown required)
+- Required disclaimer near overview:
+  - “Generated locally by Gemma from the query only; may be incorrect.”
+
+7.3 Error States
+- Model load failure:
+  - show error banner + “Retry loading model” button.
+- Generation failure:
+  - show “Could not generate overview” + “Try again”.
+
+8) Functional Requirements
+Search
+FR-1: Provide a query input and submit action (enter key or button).
+FR-2: Render search results underneath using Google Programmable Search Engine (PSE) Search Element embed.
+FR-3: On submit, trigger the PSE search for the query and refresh the results list.
+
+Gemma overview generation
+FR-4: On submit, send the raw user query to in-browser Gemma 3 270M and generate an overview.
+FR-5: Enforce output constraints via prompt template:
+  - 1–3 sentences
+  - matter-of-fact
+  - max ~60–80 words
+FR-6: Show “Generating…” state while inference runs; replace with the final text when complete.
+FR-7: Optional (v1.1): “Regenerate” button re-runs generation with same query.
+
+Stateless operation
+FR-8: No user accounts.
+FR-9: No persistence of query/output (no DB; no server storage).
+FR-10: No analytics by default (optional privacy-preserving counters only).
+
+9) Prompt Specification (v1)
+Inputs
+- query: string
+
+Prompt template (conceptual)
+- Instruction: “Answer the user’s query briefly in 1–3 sentences. Use a matter-of-fact tone.”
+
+Output
+- Plain text, short response.
+
+10) Technical Architecture (Option A: In-Browser Inference)
+10.1 Components
+- Frontend (static site or Next.js SPA)
+  - Search bar + overview card + results container
+  - Model loader module (initializes WebGPU runtime, downloads weights, warms up)
+  - Inference module (runs Gemma 3 270M locally, returns text)
+  - UI state machine (loading/ready/generating/error)
+
+- Search results
+  - Google PSE Search Element embedded in page (renders results)
+  - Optional callback hooks to coordinate UI state (e.g., results loaded)
+
+10.2 Data Flow
+1) Page load:
+   - Begin loading Gemma in the browser (WebGPU if available).
+   - UI shows “Loading model…” until ready.
+2) User submits query:
+   - Trigger PSE search to render results below.
+   - Trigger Gemma inference using only the query text.
+3) UI updates:
+   - Overview card shows “Generating…” then final output.
+   - Results list shows clickable links rendered by PSE.
+
+10.3 Model Runtime Assumptions
+- WebGPU-capable browsers/devices preferred.
+- Model weights downloaded client-side; rely on browser caching for repeat loads.
+- Consider quantized weights if available to reduce download and speed up inference.
+
+10.4 Performance Considerations
+- Warm-up pass after load to reduce first-token latency.
+- Limit generation length (max tokens) to keep latency predictable.
+- Debounce submits to avoid concurrent generations; cancel previous generation on new query.
+
+10.5 Privacy
+- All inference happens locally in the browser.
+- No server receives user queries for generation.
+- Search results are loaded via the PSE embed (subject to Google’s normal behavior).
+
+11) Security / Abuse Considerations
+- Rate limiting for generation is naturally per-device (client-side), but add:
+  - client-side cooldown between generations (optional).
+- Avoid storing any sensitive content.
+- Provide a “Clear” button to reset UI state (optional).
+
+12) Risks & Mitigations
+- Long model load time on weak devices:
+  - Mitigation: clear progress UI; optional “lite mode” (smaller/quantized weights).
+- WebGPU not available:
+  - Mitigation: show message “WebGPU required” and stop; (optional future) fallback to server inference.
+- Hallucinations / incorrect answers:
+  - Mitigation: disclaimer; keep outputs short; do not imply verification.
+- PSE embed styling limitations:
+  - Mitigation: accept for v1; consider custom results rendering later.
+
+13) MVP Deliverables
+MVP (v1)
+- Landing page with model auto-load + readiness indicator
+- Search submit triggers:
+  - Gemma overview generation (query-only)
+  - PSE search results rendering below
+- Overview card + disclaimer
+- Basic error handling and retry
+
+v1.1
+- Regenerate button
+- Copy overview button
+- Better progress reporting (weight download + warm-up)
+
+14) Open Questions (optional)
+- Exact WebLLM/Transformers.js stack and model format to use.
+- Target demo browsers/devices (Chrome only vs broader support).
+- Whether to add a non-WebGPU fallback (server inference) later.
