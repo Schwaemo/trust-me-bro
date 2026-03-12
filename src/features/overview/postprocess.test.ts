@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { enforceOverviewConstraints } from './postprocess';
 
 describe('overview post-processing', () => {
-  it('keeps only the first three sentences', () => {
+  it('keeps only the first two sentences by default', () => {
     const raw = 'One sentence. Two sentence. Three sentence. Four sentence.';
 
     const processed = enforceOverviewConstraints(raw);
 
-    expect(processed).toBe('One sentence. Two sentence. Three sentence.');
+    expect(processed).toBe('One sentence. Two sentence.');
   });
 
   it('removes markdown formatting characters', () => {
@@ -42,5 +42,13 @@ describe('overview post-processing', () => {
     const processed = enforceOverviewConstraints(raw);
 
     expect(processed).toBe('WebGPU accelerates local inference. It reduces latency.');
+  });
+
+  it('removes leading prompt labels echoed by the model', () => {
+    const raw = "Answer: Why they're right: WebGPU is faster. It reduces latency. Extra.";
+
+    const processed = enforceOverviewConstraints(raw);
+
+    expect(processed).toBe('WebGPU is faster. It reduces latency.');
   });
 });

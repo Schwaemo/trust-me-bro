@@ -1,4 +1,5 @@
 const SENTENCE_SEPARATOR = /(?<=[.!?])\s+/;
+const LEADING_LABEL_ECHO = /^(?:answer|why\s+they(?:'|’)?re\s+right|why\s+they\s+are\s+right)\s*:\s*/i;
 
 const normalizeText = (raw: string): string => {
   return raw
@@ -7,6 +8,16 @@ const normalizeText = (raw: string): string => {
     .replace(/[*_`]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+};
+
+const stripLeadingLabelEchoes = (input: string): string => {
+  let next = input.trim();
+
+  while (LEADING_LABEL_ECHO.test(next)) {
+    next = next.replace(LEADING_LABEL_ECHO, '').trim();
+  }
+
+  return next;
 };
 
 const truncateWords = (input: string, maxWords: number): string => {
@@ -89,9 +100,9 @@ export const enforceOverviewConstraints = (
   raw: string,
   options: { maxSentences?: number; maxWords?: number } = {},
 ): string => {
-  const maxSentences = options.maxSentences ?? 3;
+  const maxSentences = options.maxSentences ?? 2;
   const maxWords = options.maxWords ?? 80;
-  const cleaned = normalizeText(raw);
+  const cleaned = stripLeadingLabelEchoes(normalizeText(raw));
   const deduped = collapseRepeatedSentences(collapseRepeatedTokens(cleaned));
 
   if (!deduped) {

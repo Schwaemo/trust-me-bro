@@ -109,20 +109,28 @@ npm run test:e2e
 - No custom storage of query/output in localStorage, sessionStorage, IndexedDB, DB, or server logs.
 - Search results are provided via Google PSE embed behavior.
 
-## Vercel Deployment
+## GitHub Pages Deployment
 
-1. Push repository to your Git provider.
-2. Import the project in Vercel.
-3. Set environment variable:
-   - `VITE_GOOGLE_CSE_ID`
-4. Deploy.
+1. In GitHub, add a repository secret named `VITE_GOOGLE_CSE_ID` with your Google Programmable Search Engine ID.
+2. In `Settings -> Pages`, set `Source` to `GitHub Actions`.
+3. Push to `main`, or run the `Deploy GitHub Pages` workflow manually from the Actions tab.
+4. Wait for the workflow to publish the `dist/` artifact to GitHub Pages.
+5. Open `https://schwaemo.github.io/trust-me-bro/`.
+
+### Production Notes
+
+- Production builds use the base path `/trust-me-bro/`.
+- If this repository is renamed, update the Vite base path in `vite.config.ts` before deploying again.
+- Local development stays on `/`, so `npm run dev` behavior is unchanged.
 
 ### Production Verification Checklist
 
 - Site is served over HTTPS.
+- Site loads from `https://schwaemo.github.io/trust-me-bro/`.
 - Selected model mode loads and can generate overview text.
 - Home-only toggle switches between Basic and Advanced modes.
 - Google PSE script loads and results execute per query.
+- Favicon, JS, CSS, and ONNX/WASM assets load without 404 errors.
 - No console errors that break the main flow.
 
 ## Limitations
